@@ -1,215 +1,301 @@
-#include <iostream>   // Подключение библиотеки для ввода/вывода через консоль
-#include <string>     // Подключение библиотеки для работы со строками
-#include <fstream>    // Подключение библиотеки для работы с файлами
-#include <Windows.h>  // Подключение библиотеки Windows для настройки кодировки консоли
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <Windows.h>
+#include <cctype>
 
-using namespace std; // Использование стандартного пространства имён std
+using namespace std;
 
-// Структура для хранения информации о студенте
-struct Student
+struct Student 
 {
-    string name;     // Имя студента
-    string surname;  // Фамилия студента
+    string name;
+    string surname;
     string group;
-    int age;         // Возраст студента
+    int age;
 };
 
-// Функция для сохранения массива студентов в файл
-void saveToFile(const Student* students, int studentCount)
+bool isValidName(const string& str) 
 {
-    const string FILE_OF_DATA = "Database.txt"; // Локальное имя файла
-    ofstream fout(FILE_OF_DATA);    // Открытие файла для записи
-    if (!fout)                      // Проверка успешности открытия
+    if (str.empty()) return false;
+    for (char ch : str) 
+    {
+        if (!isalpha(static_cast<unsigned char>(ch))) return false;
+    }
+    return true;
+}
+
+void saveToFile(const Student* students, int studentCount) 
+{
+    const string FILE_OF_DATA = "Database.txt";
+    ofstream fout(FILE_OF_DATA);
+    if (!fout) 
     {
         cout << "Ошибка открытия файла\n";
         return;
     }
-    fout << studentCount << endl;   // Запись количества студентов
-    for (int i = 0; i < studentCount; i++) // Цикл по всем студентам
+    fout << studentCount << endl;
+    for (int i = 0; i < studentCount; i++) 
     {
-        fout << students[i].name << " "      // Запись имени
-            << students[i].surname << " "   // Запись фамилии
-            << students[i].age     // Запись возраста
-            << students[i].group << " " << endl;
+        fout << students[i].name << " "
+            << students[i].surname << " "
+            << students[i].age << " "
+            << students[i].group << endl;
     }
-    fout.close();                   // Закрытие файла
+    fout.close();
 }
 
-// Функция для загрузки массива студентов из файла
 void loadFile(Student*& students, int& studentCount)
 {
-    const string FILE_OF_DATA = "Database.txt"; // Локальное имя файла
-    ifstream fin(FILE_OF_DATA);     // Открытие файла для чтения
-    if (!fin)                       // Проверка успешности открытия
+    const string FILE_OF_DATA = "Database.txt";
+    ifstream fin(FILE_OF_DATA);
+    if (!fin) 
     {
         cout << "Файл не найден\n";
         students = nullptr;
         studentCount = 0;
         return;
     }
-    fin >> studentCount;            // Чтение количества студентов
-    students = new Student[studentCount]; // Выделение памяти под массив
-    for (int i = 0; i < studentCount; i++) // Цикл по всем студентам
+    fin >> studentCount;
+    students = new Student[studentCount];
+    for (int i = 0; i < studentCount; i++) 
     {
-        fin >> students[i].name >> students[i].surname >> students[i].age >> students[i].group; // Чтение данных
+        fin >> students[i].name >> students[i].surname >> students[i].age >> students[i].group;
     }
-    fin.close();                    // Закрытие файла
+    fin.close();
 }
 
-// Функция отображения текстового меню
-void showMenu()
+void showMenu() 
 {
     cout << "\n ========= Меню =========\n";
-    cout << "1. Показать всех студентов\n";   // Пункт меню: показать студентов
-    cout << "2. Добавить студента\n";         // Пункт меню: добавить студента
-    cout << "3. Изменить студента\n";         // Пункт меню: изменить данные
-    cout << "4. Удалить студента\n";          // Пункт меню: удалить студента
-    cout << "0. Выход\n";                     // Пункт меню: выход из программы
-    cout << "Выберите пункт: ";               // Приглашение к выбору
+    cout << "1. Показать всех студентов\n";
+    cout << "2. Добавить студента\n";
+    cout << "3. Изменить студента\n";
+    cout << "4. Удалить студента\n";
+    cout << "5. Найти студента\n";
+    cout << "0. Выход\n";
+    cout << "Выберите пункт: ";
 }
 
-// Функция отображения списка студентов
-void showStudents(const Student* students, int studentCount)
+void showStudents(const Student* students, int studentCount) 
 {
-    if (studentCount == 0)                    // Проверка: есть ли студенты
+    if (studentCount == 0) 
     {
         cout << "Список студентов пуст.\n";
         return;
     }
-    for (int i = 0; i < studentCount; i++)    // Цикл по всем студентам
+    for (int i = 0; i < studentCount; i++)
     {
         cout << i + 1 << ". " << students[i].name << " "
             << students[i].surname << ", возраст: "
-            << students[i].age << 
-            ", Класс: " << students[i].group << endl;      // Вывод информации о студенте
+            << students[i].age << ", Класс: "
+            << students[i].group << endl;
     }
 }
 
-// Функция добавления нового студента
-void addStudent(Student*& students, int& studentCount)
+void addStudent(Student*& students, int& studentCount) 
 {
-    Student s;                                // Новый студент
+    Student s;
     cout << "Введите имя: ";
-    cin >> s.name;                            // Ввод имени
+    cin >> s.name;
+    while (!isValidName(s.name)) 
+    {
+        cout << "Имя должно содержать только буквы. Повторите ввод: ";
+        cin >> s.name;
+    }
+
     cout << "Введите фамилию: ";
-    cin >> s.surname;                         // Ввод фамилии
+    cin >> s.surname;
+    while (!isValidName(s.surname)) 
+    {
+        cout << "Фамилия должна содержать только буквы. Повторите ввод: ";
+        cin >> s.surname;
+    }
+
     cout << "Введите возраст: ";
-    cin >> s.age;              // Ввод возраста
+    while (!(cin >> s.age) || s.age < 10 || s.age > 100) 
+    {
+        cout << "Возраст должен быть числом от 10 до 100. Повторите ввод: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
+
     cout << "Введите класс студента: ";
     cin >> s.group;
+    while (s.group.empty()) 
+    {
+        cout << "Класс не может быть пустым. Повторите ввод: ";
+        cin >> s.group;
+    }
 
-    Student* temp = new Student[studentCount + 1]; // Новый массив на 1 больше
-    for (int i = 0; i < studentCount; i++)         // Копирование старых данных
+    Student* temp = new Student[studentCount + 1];
+    for (int i = 0; i < studentCount; i++)
         temp[i] = students[i];
-    temp[studentCount] = s;                        // Добавление нового студента
-    delete[] students;                             // Освобождение старой памяти
-    students = temp;                               // Переназначение указателя
-    studentCount++;                                // Увеличение счётчика
+    temp[studentCount] = s;
+    delete[] students;
+    students = temp;
+    studentCount++;
 
     cout << "Студент добавлен.\n";
-    saveToFile(students, studentCount);            // Сохранение изменений
+    saveToFile(students, studentCount);
 }
 
-// Функция изменения данных студента
-void changeStudent(Student* students, int studentCount)
+void changeStudent(Student* students, int studentCount) 
 {
-    if (studentCount == 0)                         // Проверка: есть ли студенты
-    {
+    if (studentCount == 0) {
         cout << "Нет студентов для изменения.\n";
         return;
     }
-    showStudents(students, studentCount);          // Показ списка
+
+    showStudents(students, studentCount);
     cout << "Введите номер студента для изменения: ";
     int index;
-    cin >> index;                                  // Ввод номера
-    if (index <= 0 || index > studentCount)        // Проверка корректности
+    while (!(cin >> index) || index <= 0 || index > studentCount) 
     {
-        cout << "Неправильный номер.\n";
-        return;
+        cout << "Неправильный номер. Повторите ввод: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
     }
-    index--;                                       // Преобразование в индекс массива
+    index--;
+
     cout << "Введите новое имя: ";
-    cin >> students[index].name;                   // Ввод нового имени
+    cin >> students[index].name;
+    while (!isValidName(students[index].name)) 
+    {
+        cout << "Имя должно содержать только буквы. Повторите ввод: ";
+        cin >> students[index].name;
+    }
+
     cout << "Введите новую фамилию: ";
-    cin >> students[index].surname;                // Ввод новой фамилии
+    cin >> students[index].surname;
+    while (!isValidName(students[index].surname)) 
+    {
+        cout << "Фамилия должна содержать только буквы. Повторите ввод: ";
+        cin >> students[index].surname;
+    }
+
     cout << "Введите новый возраст: ";
-    cin >> students[index].age;                    // Ввод нового возраста
+    while (!(cin >> students[index].age) || students[index].age < 10 || students[index].age > 100)
+    {
+        cout << "Возраст должен быть числом от 10 до 100. Повторите ввод: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
+    }
+
     cout << "Введите новый класс студента: ";
     cin >> students[index].group;
+    while (students[index].group.empty()) 
+    {
+        cout << "Класс не может быть пустым. Повторите ввод: ";
+        cin >> students[index].group;
+    }
 
     cout << "Данные студента обновлены.\n";
-    saveToFile(students, studentCount);            // Сохранение изменений
+    saveToFile(students, studentCount);
 }
 
-// Функция удаления студента
-void deleteStudent(Student*& students, int& studentCount)
+void deleteStudent(Student*& students, int& studentCount) 
 {
-    if (studentCount == 0)                         // Проверка: есть ли студенты
-    {
+    if (studentCount == 0) {
         cout << "Нет студентов для удаления.\n";
         return;
     }
-    showStudents(students, studentCount);          // Показ списка
+
+    showStudents(students, studentCount);
     cout << "Введите номер студента для удаления: ";
     int index;
-    cin >> index;                                  // Ввод номера
-    if (index <= 0 || index > studentCount)        // Проверка корректности
+    while (!(cin >> index) || index <= 0 || index > studentCount) 
     {
-        cout << "Неправильный номер.\n";
-        return;
+        cout << "Неправильный номер. Повторите ввод: ";
+        cin.clear();
+        cin.ignore(1000, '\n');
     }
-    index--;                                       // Преобразование в индекс массива
+    index--;
 
-    Student* temp = new Student[studentCount - 1]; // Новый массив на 1 меньше
-    for (int i = 0, j = 0; i < studentCount; i++)  // Копирование всех кроме удаляемого
+    Student* temp = new Student[studentCount - 1];
+    for (int i = 0, j = 0; i < studentCount; i++) 
     {
         if (i == index) continue;
         temp[j++] = students[i];
     }
-    delete[] students;                             // Освобождение памяти
-    students = temp;                               // Переназначение указателя
-    studentCount--;                                // Уменьшение счётчика
+    delete[] students;
+    students = temp;
+    studentCount--;
 
     cout << "Студент удалён.\n";
-    saveToFile(students, studentCount);            // Сохранение изменений
+    saveToFile(students, studentCount);
 }
 
-// Главная функция программы
-int main()
+void searchStudent(Student*& students, int& studentCount)
 {
-    SetConsoleCP(1251);                            // Установка кодировки ввода (кириллица)
-    SetConsoleOutputCP(1251);                      // Установка кодировки вывода
-
-    Student* students = nullptr;                   // Указатель на динамический массив студентов
-    int studentCount = 0;                          // Количество студентов
-
-    loadFile(students, studentCount);              // Загрузка данных из файла при старте
-
-    while (true)                                   // Бесконечный цикл меню
+    bool isFound = false;
+    string studentSurname;
+    if (studentCount == 0)
     {
-        showMenu();                                // Показ меню
+        cout << "Список пуст.";
+        return;
+    }
+    cout << "Введите фамилию для поиска: ";
+    cin >> studentSurname;
+    for (int i = 0; i < studentCount; i++)
+    {
+        if (students[i].surname == studentSurname)
+        {
+            cout << i + 1 << ". " << students[i].name << " " << students[i].surname << ", группа: " << students[i].group << ", возраст: " << students[i].age << endl;
+            isFound = true;
+        }
+    }
+    if (!isFound)
+    {
+        cout << "Студент не найден." << endl;
+    }
+
+}
+
+int main() 
+{
+    SetConsoleCP(1251);
+    SetConsoleOutputCP(1251);
+
+    Student* students = nullptr;
+    int studentCount = 0;
+
+    loadFile(students, studentCount);
+
+    while (true) 
+    {
+        showMenu();
         int choice;
-        cin >> choice;                             // Ввод выбора пользователя
-        switch (choice)                            // Обработка выбора
+        if (!(cin >> choice))
+        {
+            cout << "Ошибка ввода. Введите число.\n";
+            cin.clear();
+            cin.ignore(1000, '\n');
+            continue;
+        }
+
+        switch (choice) 
         {
         case 1:
-            showStudents(students, studentCount);  // Показ студентов
+            showStudents(students, studentCount);
             break;
         case 2:
-            addStudent(students, studentCount);    // Добавление студента
+            addStudent(students, studentCount);
             break;
         case 3:
-            changeStudent(students, studentCount); // Изменение студента
+            changeStudent(students, studentCount);
             break;
         case 4:
-            deleteStudent(students, studentCount); // Удаление студента
+            deleteStudent(students, studentCount);
+            break;
+        case 5: 
+            searchStudent(students, studentCount);
             break;
         case 0:
-            delete[] students;                     // Освобождение памяти
+            delete[] students;
             cout << "Выход.\n";
-            return 0;                              // Завершение программы
+            return 0;
         default:
-            cout << "Неверный выбор, попробуйте ещё раз.\n"; // Обработка ошибки
+            cout << "Неверный выбор, попробуйте ещё раз.\n";
         }
     }
 }
